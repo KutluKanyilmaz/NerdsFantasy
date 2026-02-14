@@ -5,7 +5,7 @@ using Enemy;
 public class PooledProjectile : MonoBehaviour, IPooledObject
 {
     [Header("Settings")]
-    public string myPoolKey = "Bullet";
+    public PoolType myPoolType = PoolType.Projectile;
     public float lifetime = 2f;
     public float damage = 10f;
     
@@ -36,7 +36,7 @@ public class PooledProjectile : MonoBehaviour, IPooledObject
         yield return new WaitForSeconds(lifetime);
         
         // Return myself to the manager
-        PoolManager.Instance.Release(myPoolKey, gameObject);
+        PoolManager.Instance.Release(PoolType.Projectile, gameObject);
     }
 
     void OnTriggerEnter(Collider other)
@@ -65,6 +65,6 @@ public class PooledProjectile : MonoBehaviour, IPooledObject
         
         isReleased = true;
         StopAllCoroutines();
-        PoolManager.Instance.Release(myPoolKey, gameObject);
+        PoolManager.Instance.Release(PoolType.Projectile, gameObject);
     }
 }

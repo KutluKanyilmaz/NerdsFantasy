@@ -2,6 +2,11 @@
 using UnityEngine;
 using UnityEngine.Pool;
 
+public enum PoolType
+{
+    Projectile,
+    Enemy
+}
 public class PoolManager : MonoBehaviour
 {
     public static PoolManager Instance;
@@ -9,98 +14,69 @@ public class PoolManager : MonoBehaviour
     [System.Serializable]
     public class PoolSetup
     {
-        public string poolKey;
+        public PoolType type;
         public GameObject prefab;
         public int defaultCapacity = 10;
         public int maxCapacity = 50;
     }
 
-    [Header("Configuration")]
-    [Tooltip("Define your pools here. The 'Pool Key' is what you use to spawn them.")]
-    public List<PoolSetup> poolsToCheck;
-
-    // The runtime dictionary storing the actual logic
-    Dictionary<string, ObjectPool<GameObject>> _poolDictionary;
+    public List<PoolSetup> poolConfigs;
+    Dictionary<PoolType, ObjectPool<GameObject>> _pools = new();
 
     void Awake()
     {
-        // Singleton Setup
         if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        else { Destroy(gameObject); return; }
 
-        _poolDictionary = new Dictionary<string, ObjectPool<GameObject>>();
-
-        // Initialize every pool defined in the Inspector
-        foreach (var config in poolsToCheck)
+        foreach (var config in poolConfigs)
         {
-            // We create a local variable for the prefab to avoid closure issues in the lambda
+            // Capture variables for the lambda
             GameObject prefabRef = config.prefab;
-            string keyRef = config.poolKey;
+            PoolType typeRef = config.type;
 
-            var newPool = new ObjectPool<GameObject>(
-                createFunc: () => 
-                {
-                    // 1. Create Logic: Instantiate and parent to this manager to keep hierarchy clean
-                    GameObject obj = Instantiate(prefabRef, transform);
-                    obj.name = keyRef; // Optional: helps debug
-                    return obj;
-                },
-                actionOnGet: (obj) => 
-                {
-                    // 2. Get Logic: Activate and reset
+            var pool = new ObjectPool<GameObject>(
+                createFunc: () => Instantiate(prefabRef, transform),
+                actionOnGet: (obj) => {
                     obj.SetActive(true);
-                    
-                    // Trigger the custom "OnSpawn" logic if the object has the interface
-                    var pooledScript = obj.GetComponent<IPooledObject>();
-                    if (pooledScript != null) pooledScript.OnSpawnFromPool();
+                    if (obj.TryGetComponent(out IPooledObject p)) p.OnSpawnFromPool();
                 },
-                actionOnRelease: (obj) => 
-                {
-                    // 3. Release Logic: Deactivate
-                    obj.SetActive(false);
-                },
-                actionOnDestroy: (obj) => 
-                {
-                    // 4. Destroy Logic: Actual destruction if pool is full
-                    Destroy(obj);
-                },
-                collectionCheck: true,
+                actionOnRelease: (obj) => obj.SetActive(false),
+                actionOnDestroy: (obj) => Destroy(obj),
                 defaultCapacity: config.defaultCapacity,
                 maxSize: config.maxCapacity
             );
 
-            _poolDictionary.Add(config.poolKey, newPool);
+            _pools.Add(typeRef, pool);
         }
     }
 
-    // --- Public API ---
 
-    public GameObject Spawn(string poolKey, Vector3 position, Quaternion rotation)
-    {
-        if (!_poolDictionary.ContainsKey(poolKey))
-        {
-            Debug.LogError($"PoolManager: Pool with key '{poolKey}' does not exist.");
+    public GameObject Spawn(PoolType poolType, Vector3 position, Quaternion rotation) {
+
+        if (!_pools.ContainsKey(poolType)) {
+
+            Debug.LogError($"PoolManager: Pool with key '{poolType}' does not exist.");
+
             return null;
-        }
 
-        // Get from the specific pool
-        GameObject obj = _poolDictionary[poolKey].Get();
+        }
         
+        // Get from the specific pool
+        GameObject obj = _pools[poolType].Get();
+
+
         // Move it to the desired spot
         obj.transform.position = position;
         obj.transform.rotation = rotation;
-
+        
         return obj;
     }
 
-    public void Release(string poolKey, GameObject obj)
+    public void Release(PoolType type, GameObject obj)
     {
-        if (!_poolDictionary.ContainsKey(poolKey))
+        if (_pools.TryGetValue(type, out var pool))
         {
-            Debug.LogError($"PoolManager: Trying to release to unknown pool '{poolKey}'");
-            return;
+            pool.Release(obj);
         }
-
-        _poolDictionary[poolKey].Release(obj);
     }
 }

@@ -41,7 +41,7 @@ namespace Player {
         {
             if (firePoint == null || projectilePrefab == null) return;
 
-            GameObject bullet = PoolManager.Instance.Spawn("Projectile", firePoint.position, firePoint.rotation);
+            GameObject bullet = PoolManager.Instance.Spawn(PoolType.Projectile, firePoint.position, firePoint.rotation);
             
             Rigidbody rb = bullet.GetComponent<Rigidbody>();
             if (rb != null)
