@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Shapes;
 
 public class WaveSpawner : MonoBehaviour
 {
@@ -16,10 +17,15 @@ public class WaveSpawner : MonoBehaviour
     public float spawnRadius = 20f; // Distance from center
     public Transform centerPoint;   // Usually the player (or world center 0,0,0)
 
+    [Header("Visuals")]
+    public Disc spawnRadiusVisual;
+    
     [Header("Waves")]
     public List<Wave> waves;
     public float timeBetweenWaves = 5f;
 
+
+    
     int currentWaveIndex = 0;
     float waveCountdown;
     enum SpawnState { Spawning, Waiting, Counting, Finished }
@@ -123,11 +129,6 @@ public class WaveSpawner : MonoBehaviour
     // Visualizing the Spawn Circle in the Editor
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.red;
-        if (centerPoint != null)
-        {
-            // Draw the spawn circle
-            Gizmos.DrawWireSphere(centerPoint.position, spawnRadius);
-        }
+        spawnRadiusVisual.Radius = spawnRadius;
     }
 }
