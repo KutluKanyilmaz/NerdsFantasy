@@ -1,134 +1,246 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using Shapes;
+using Sirenix.OdinInspector;
+
 
 public class WaveSpawner : MonoBehaviour
 {
+    public enum SpawnStrategy { Random, Section, Point }
+
+    [System.Serializable]
+    public class WaveImpulse
+    {
+        [HideInInspector] 
+        public string internalDebugName => enemyPrefab != null ? enemyPrefab.name : "Empty Impulse";
+
+        [Required, AssetsOnly]
+        [HorizontalGroup("Top", Width = 0.7f)] // Puts Prefab and Amount on one line
+        public GameObject enemyPrefab;
+
+        [HorizontalGroup("Top")]
+        [LabelWidth(12)]
+        [LabelText("x")] // Tiny label for the amount
+        [MinValue(1)] 
+        public int amount = 1;
+        
+        [Header("Timing")]
+        [MinValue(0)] public float startTime;
+        
+        [MinValue(0.1f)] // Prevents 0 or negative duration
+        public float duration = 5f;
+        
+        [MinValue(0.01f)] // Prevents the infinite loop/crash scenario
+        public float spawnInterval = 1f;
+        
+        public SpawnStrategy strategy;
+        
+        [Header("Strategy Settings")]
+        [ShowIf("@this.strategy != SpawnStrategy.Random")] // Only show if relevant
+        [Range(0f, 360f)] public float angleStart = 0f;
+
+        [ShowIf("strategy", SpawnStrategy.Section)] // Another way to write the toggle
+        [Range(0f, 360f)] public float angleEnd = 90f;
+        
+    }
+
     [System.Serializable]
     public class Wave
     {
-        public GameObject enemyPrefab;
-        public int count = 10;
-        public float rate = 1f; // Spawns per second
+        [MinValue(1f)]
+        public float waveDuration = 60f;
+
+        [ListDrawerSettings(
+            ListElementLabelName = "internalDebugName", // Odin uses this property as the header!
+            ShowIndexLabels = false)]
+        [ValidateInput("ValidateImpulsesFit", "One or more impulses exceed the wave duration!")]
+        public List<WaveImpulse> impulses;
+
+        // Validation logic for the List
+        bool ValidateImpulsesFit(List<WaveImpulse> list)
+        {
+            if (list == null) return true;
+            foreach (var impulse in list)
+            {
+                if (impulse.startTime > waveDuration)
+                    return false;
+                if (impulse.startTime + impulse.duration > waveDuration)
+                    return false;
+            }
+            return true;
+        }
     }
 
-    [Header("Spawn Settings")]
-    public float spawnRadius = 20f; // Distance from center
-    public Transform centerPoint;   // Usually the player (or world center 0,0,0)
-
-    [Header("Visuals")]
-    public Disc spawnRadiusVisual;
+    [Title("Configuration")]
+    [SceneObjectsOnly] // Only allow transforms in the scene
+    public Transform centerPoint;
     
-    [Header("Waves")]
+    [PropertyRange(5, 100)]
+    public float spawnRadius = 20f;
+    
+    [Title("Content")]
     public List<Wave> waves;
-    public float timeBetweenWaves = 5f;
-
-
     
-    int currentWaveIndex = 0;
-    float waveCountdown;
-    enum SpawnState { Spawning, Waiting, Counting, Finished }
-    SpawnState state = SpawnState.Counting;
+    // State
+    int currentWaveIndex = -1;
+    float waveTimeTracker;
+    bool isWaveActive;
+    
+    // Tracks the timing state of each impulse in the current wave
+    class ImpulseRunner
+    {
+        public WaveImpulse data;
+        public float nextSpawnTime; // Relative to the impulse's start (0 = start of impulse)
+
+        public ImpulseRunner(WaveImpulse _data)
+        {
+            data = _data;
+            nextSpawnTime = 0f; // Ensure we spawn immediately when impulse starts
+        }
+    }
+    
+    List<ImpulseRunner> activeRunners = new List<ImpulseRunner>();
 
     void Start()
     {
-        waveCountdown = timeBetweenWaves;
-        if (centerPoint == null) centerPoint = transform; // Default to this object's position
+        if (centerPoint == null) centerPoint = transform;
+        StartNextWave();
     }
 
     void Update()
     {
-        if (state == SpawnState.Finished) return;
+        if (!isWaveActive) return;
+        
+        // 1. Advance Wave Timer
+        waveTimeTracker += Time.deltaTime;
 
-        // 1. Check if we need to start the next wave
-        if (state == SpawnState.Counting)
+        // 2. Check for Wave End
+        if (waveTimeTracker >= waves[currentWaveIndex].waveDuration)
         {
-            waveCountdown -= Time.deltaTime;
-            if (waveCountdown <= 0f)
-            {
-                StartCoroutine(SpawnWave(waves[currentWaveIndex]));
-            }
-            return; // Don't do anything else while counting down
+            EndCurrentWave();
+            return;
         }
 
-        // 2. Check if the wave is cleared
-        if (state == SpawnState.Waiting)
+        // 3. Process Concurrent Impulses
+        foreach (var runner in activeRunners)
         {
-            // Simple check: Are there any enemies left alive?
-            // Note: This can be expensive if you have 1000s of objects. 
-            // Better to track count in a manager, but this works for MVP.
-            if (!EnemyIsAlive())
+            ProcessImpulse(runner);
+        }
+    }
+
+    void ProcessImpulse(ImpulseRunner runner)
+    {
+        // Calculate the "local time" for this specific impulse
+        // Example: If Wave is at 25s, and Impulse starts at 20s, local time is 5s.
+        float impulseLocalTime = waveTimeTracker - runner.data.startTime;
+
+        // Check if this impulse is currently active (Started AND not finished)
+        if (impulseLocalTime >= 0 && impulseLocalTime < runner.data.duration)
+        {
+            // Check if it's time to spawn a batch
+            if (impulseLocalTime >= runner.nextSpawnTime)
             {
-                WaveCompleted();
+                SpawnBatch(runner.data);
+                
+                // Schedule next spawn
+                runner.nextSpawnTime += runner.data.spawnInterval;
             }
         }
     }
 
-    IEnumerator SpawnWave(Wave _wave)
+    void SpawnBatch(WaveImpulse impulse)
     {
-        state = SpawnState.Spawning;
-        Debug.Log("Spawning Wave");
-
-        for (int i = 0; i < _wave.count; i++)
+        for (int i = 0; i < impulse.amount; i++)
         {
-            SpawnEnemy(_wave.enemyPrefab);
-            yield return new WaitForSeconds(1f / _wave.rate);
+            Vector3 pos = GetSpawnPosition(impulse);
+            PoolManager.Instance.Spawn(PoolType.Enemy, pos, Quaternion.identity);
         }
-
-        state = SpawnState.Waiting;
     }
 
-    void SpawnEnemy(GameObject _enemy)
+    Vector3 GetSpawnPosition(WaveImpulse impulse)
     {
-        // === The Circular Logic ===
-        // 1. Pick a random angle (in radians)
-        float randomAngle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+        float angleRad = 0f;
 
-        // 2. Calculate position using Sine and Cosine
-        // x = cx + r * cos(a)
-        // z = cz + r * sin(a)
-        Vector3 spawnPos = new Vector3(
-            centerPoint.position.x + spawnRadius * Mathf.Cos(randomAngle),
+        switch (impulse.strategy)
+        {
+            case SpawnStrategy.Random:
+                angleRad = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+                break;
+
+            case SpawnStrategy.Section:
+                // Random angle between Start and End
+                float range = impulse.angleEnd - impulse.angleStart;
+                // Handle wrapping (e.g. 350 to 10 degrees) if needed, 
+                // but simple Range works for standard input.
+                float randomDeg = impulse.angleStart + Random.Range(0f, range); 
+                angleRad = randomDeg * Mathf.Deg2Rad;
+                break;
+
+            case SpawnStrategy.Point:
+                angleRad = impulse.angleStart * Mathf.Deg2Rad;
+                break;
+                
+            // Case "OppositePlayer" reserved for later
+        }
+
+        return new Vector3(
+            centerPoint.position.x + spawnRadius * Mathf.Cos(angleRad),
             centerPoint.position.y,
-            centerPoint.position.z + spawnRadius * Mathf.Sin(randomAngle)
+            centerPoint.position.z + spawnRadius * Mathf.Sin(angleRad)
         );
-
-        PoolManager.Instance.Spawn("Enemy", spawnPos, Quaternion.identity);
     }
 
-    void WaveCompleted()
+    void StartNextWave()
     {
-        Debug.Log("Wave Completed!");
-        state = SpawnState.Counting;
-        waveCountdown = timeBetweenWaves;
-
-        if (currentWaveIndex + 1 < waves.Count)
+        currentWaveIndex++;
+        if (currentWaveIndex >= waves.Count)
         {
-            currentWaveIndex++;
+            Debug.Log("All Waves Complete. Looping for debug.");
+            currentWaveIndex = 0;
         }
-        else
+
+        Debug.Log($"Starting Wave: {currentWaveIndex}");
+        
+        // Reset timers
+        waveTimeTracker = 0f;
+        isWaveActive = true;
+
+        // Initialize Runners for the new wave
+        activeRunners.Clear();
+        foreach (var impulseData in waves[currentWaveIndex].impulses)
         {
-            Debug.Log("ALL WAVES COMPLETE! LOoping...");
-            currentWaveIndex = 0; // Loop back for endless testing
-            // state = SpawnState.Finished; // Or use this to stop
+            activeRunners.Add(new ImpulseRunner(impulseData));
         }
     }
 
-    bool EnemyIsAlive()
+    void EndCurrentWave()
     {
-        // This finds objects with the "Enemy" tag. 
-        // MAKE SURE YOUR ENEMY PREFAB IS TAGGED "Enemy"!
-        if (GameObject.FindGameObjectsWithTag("Enemy").Length == 0)
-        {
-            return false;
-        }
-        return true;
+        Debug.Log("Wave Finished.");
+        isWaveActive = false;
+        // Automatically start next one for now
+        StartNextWave();
     }
 
-    // Visualizing the Spawn Circle in the Editor
-    void OnDrawGizmosSelected()
-    {
-        spawnRadiusVisual.Radius = spawnRadius;
+    // ==========================================
+    // EDITOR VALIDATION
+    // ==========================================
+    void OnValidate() {
+        // This runs whenever you change values in the Inspector
+        if (waves == null) return;
+
+        for (var index = 0; index < waves.Count; index++) {
+            var wave = waves[index];
+            if (wave.impulses == null) continue;
+
+            foreach (var impulse in wave.impulses) {
+                // Check 1: Does the impulse end after the wave ends?
+                if (impulse.startTime + impulse.duration > wave.waveDuration) {
+                    Debug.LogError($"[Config Error] Impulse in Wave '{index}' exceeds wave duration!");
+                }
+
+                // Check 2: Zero interval check to prevent infinite loops/crashes
+                if (impulse.spawnInterval <= 0) impulse.spawnInterval = 0.1f;
+            }
+        }
     }
 }
