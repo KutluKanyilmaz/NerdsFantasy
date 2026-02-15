@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 
-namespace Enemy {
+namespace Enemies {
 
     public class CompositeTarget : MonoBehaviour
     {
@@ -20,8 +20,6 @@ namespace Enemy {
             {
                 float finalDamage = baseDamage * damageMultiplier;
                 mainHealth.TakeDamage(finalDamage);
-            
-                // Optional: You could add visual effects here specific to this part (e.g., Armor ping sound)
             }
         }
     }

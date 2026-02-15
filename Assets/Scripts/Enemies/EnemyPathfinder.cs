@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
-namespace Enemy {
+namespace Enemies {
 
     [RequireComponent(typeof(NavMeshAgent))]
     public class EnemyPathfinder : MonoBehaviour

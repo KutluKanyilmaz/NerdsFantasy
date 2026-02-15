@@ -678,15 +678,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e247bc8a61464cbeb0aa657d76b14e86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PoolManager
-  poolConfigs:
-  - type: 0
-    prefab: {fileID: 3369766539138806465, guid: 87e8889a1d6e679448745c9fda660d8d, type: 3}
-    defaultCapacity: 10
-    maxCapacity: 50
-  - type: 1
-    prefab: {fileID: 7928119667261991613, guid: 56423745fc721ad4f8ec608e440c3ccb, type: 3}
-    defaultCapacity: 10
-    maxCapacity: 200
+  projectilePrefab: {fileID: 3191694393129504381, guid: 87e8889a1d6e679448745c9fda660d8d, type: 3}
+  enemyPrefab: {fileID: -6647595623652048590, guid: 56423745fc721ad4f8ec608e440c3ccb, type: 3}
+  damageNumberPrefab: {fileID: 1754365664882208230, guid: b1ccb2709986d6d4b9c2bd4181cb69ab, type: 3}
 --- !u!4 &691005838
 Transform:
   m_ObjectHideFlags: 0
@@ -892,8 +886,7 @@ MonoBehaviour:
   centerPoint: {fileID: 771897560}
   spawnRadius: 20
   waves:
-  - waveName: Wave 1
-    waveDuration: 60
+  - waveDuration: 60
     impulses:
     - enemyPrefab: {fileID: 7928119667261991613, guid: 56423745fc721ad4f8ec608e440c3ccb, type: 3}
       amount: 2

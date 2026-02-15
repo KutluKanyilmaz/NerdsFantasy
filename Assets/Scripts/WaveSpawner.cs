@@ -153,7 +153,7 @@ public class WaveSpawner : MonoBehaviour
         for (int i = 0; i < impulse.amount; i++)
         {
             Vector3 pos = GetSpawnPosition(impulse);
-            PoolManager.Instance.Spawn(PoolType.Enemy, pos, Quaternion.identity);
+            PoolManager.Instance.SpawnEnemy(pos, Quaternion.identity);
         }
     }
 
@@ -195,11 +195,11 @@ public class WaveSpawner : MonoBehaviour
         currentWaveIndex++;
         if (currentWaveIndex >= waves.Count)
         {
-            Debug.Log("All Waves Complete. Looping for debug.");
+            //Debug.Log("All Waves Complete. Looping for debug.");
             currentWaveIndex = 0;
         }
 
-        Debug.Log($"Starting Wave: {currentWaveIndex}");
+        //Debug.Log($"Starting Wave: {currentWaveIndex}");
         
         // Reset timers
         waveTimeTracker = 0f;
@@ -215,7 +215,6 @@ public class WaveSpawner : MonoBehaviour
 
     void EndCurrentWave()
     {
-        Debug.Log("Wave Finished.");
         isWaveActive = false;
         // Automatically start next one for now
         StartNextWave();

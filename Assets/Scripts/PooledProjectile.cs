@@ -1,11 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
-using Enemy;
+using Enemies;
 
-public class PooledProjectile : MonoBehaviour, IPooledObject
-{
+public class PooledProjectile : MonoBehaviour, IPooledObject {
     [Header("Settings")]
-    public PoolType myPoolType = PoolType.Projectile;
     public float lifetime = 2f;
     public float damage = 10f;
     
@@ -13,13 +11,11 @@ public class PooledProjectile : MonoBehaviour, IPooledObject
     bool hasDamaged;
     Rigidbody rb;
 
-    void Awake()
-    {
+    void Awake() {
         rb = GetComponent<Rigidbody>();
     }
 
-    public void OnSpawnFromPool()
-    {
+    public void OnSpawnFromPool() {
         isReleased = false;
         hasDamaged = false;
         if (rb != null)
@@ -31,22 +27,21 @@ public class PooledProjectile : MonoBehaviour, IPooledObject
         StartCoroutine(DeactivateRoutine());
     }
 
-    IEnumerator DeactivateRoutine()
-    {
+    IEnumerator DeactivateRoutine() {
         yield return new WaitForSeconds(lifetime);
         
-        // Return myself to the manager
-        PoolManager.Instance.Release(PoolType.Projectile, gameObject);
+        ReturnToPool();
     }
 
-    void OnTriggerEnter(Collider other)
-    {
+    void OnTriggerEnter(Collider other) {
+        if (isReleased) return;
         CompositeTarget partHit = other.GetComponent<CompositeTarget>();
         
         if (partHit != null)
         {
-            if (!hasDamaged)
-            {
+            if (!hasDamaged) {
+                hasDamaged = true;
+                PoolManager.Instance.DamageNumberPrefab.Spawn(transform.position, damage * partHit.damageMultiplier);
                 partHit.ReceiveHit(damage);
             }
             ReturnToPool();
@@ -59,12 +54,11 @@ public class PooledProjectile : MonoBehaviour, IPooledObject
         }
     }
     
-    void ReturnToPool()
-    {
+    void ReturnToPool() {
         if (isReleased) return;
         
         isReleased = true;
         StopAllCoroutines();
-        PoolManager.Instance.Release(PoolType.Projectile, gameObject);
+        PoolManager.Instance.ReleaseProjectile(this);
     }
 }

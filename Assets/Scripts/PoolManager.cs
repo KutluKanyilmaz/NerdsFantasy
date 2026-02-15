@@ -1,82 +1,72 @@
 ﻿using System.Collections.Generic;
+using DamageNumbersPro;
+using Enemies;
 using UnityEngine;
 using UnityEngine.Pool;
 
-public enum PoolType
-{
-    Projectile,
-    Enemy
-}
 public class PoolManager : MonoBehaviour
 {
     public static PoolManager Instance;
 
-    [System.Serializable]
-    public class PoolSetup
-    {
-        public PoolType type;
-        public GameObject prefab;
-        public int defaultCapacity = 10;
-        public int maxCapacity = 50;
-    }
+    public ObjectPool<PooledProjectile> projectilePool;
+    public ObjectPool<Enemy> enemyPool;
+    public ObjectPool<DamageNumber> damageNumberPool;
 
-    public List<PoolSetup> poolConfigs;
-    Dictionary<PoolType, ObjectPool<GameObject>> _pools = new();
+    [SerializeField] PooledProjectile projectilePrefab;
+    [SerializeField] Enemy enemyPrefab;
+    [SerializeField] DamageNumber damageNumberPrefab;
+    public DamageNumber DamageNumberPrefab { get { return damageNumberPrefab; } }
 
     void Awake()
     {
         if (Instance == null) Instance = this;
         else { Destroy(gameObject); return; }
 
-        foreach (var config in poolConfigs)
-        {
-            // Capture variables for the lambda
-            GameObject prefabRef = config.prefab;
-            PoolType typeRef = config.type;
+        // --- Projectile Pool ---
+        projectilePool = new ObjectPool<PooledProjectile>(
+            createFunc: () => Instantiate(projectilePrefab, transform),
+            actionOnGet: (obj) => {
+                obj.gameObject.SetActive(true);
+                if (obj.TryGetComponent(out IPooledObject p)) p.OnSpawnFromPool();
+            },
+            actionOnRelease: (obj) => obj.gameObject.SetActive(false),
+            actionOnDestroy: (obj) => Destroy(obj.gameObject),
+            defaultCapacity: 50, maxSize: 200
+        );
 
-            var pool = new ObjectPool<GameObject>(
-                createFunc: () => Instantiate(prefabRef, transform),
-                actionOnGet: (obj) => {
-                    obj.SetActive(true);
-                    if (obj.TryGetComponent(out IPooledObject p)) p.OnSpawnFromPool();
-                },
-                actionOnRelease: (obj) => obj.SetActive(false),
-                actionOnDestroy: (obj) => Destroy(obj),
-                defaultCapacity: config.defaultCapacity,
-                maxSize: config.maxCapacity
-            );
-
-            _pools.Add(typeRef, pool);
-        }
+        // --- Enemy Pool ---
+        enemyPool = new ObjectPool<Enemy>(
+            createFunc: () => Instantiate(enemyPrefab, transform),
+            actionOnGet: (obj) => {
+                obj.gameObject.SetActive(true);
+                if (obj.TryGetComponent(out IPooledObject p)) p.OnSpawnFromPool();
+            },
+            actionOnRelease: (obj) => obj.gameObject.SetActive(false),
+            actionOnDestroy: (obj) => Destroy(obj.gameObject),
+            defaultCapacity: 10, maxSize: 50
+        );
     }
 
+    // --- Helper Methods ---
 
-    public GameObject Spawn(PoolType poolType, Vector3 position, Quaternion rotation) {
-
-        if (!_pools.ContainsKey(poolType)) {
-
-            Debug.LogError($"PoolManager: Pool with key '{poolType}' does not exist.");
-
-            return null;
-
-        }
-        
-        // Get from the specific pool
-        GameObject obj = _pools[poolType].Get();
-
-
-        // Move it to the desired spot
-        obj.transform.position = position;
-        obj.transform.rotation = rotation;
-        
+    #region Spawning Logic
+    public PooledProjectile SpawnProjectile(Vector3 position, Quaternion rotation) {
+        if (!projectilePrefab) return null;
+        var obj = projectilePool.Get();
+        obj.transform.SetPositionAndRotation(position, rotation);
         return obj;
     }
 
-    public void Release(PoolType type, GameObject obj)
-    {
-        if (_pools.TryGetValue(type, out var pool))
-        {
-            pool.Release(obj);
-        }
+    public Enemy SpawnEnemy(Vector3 position, Quaternion rotation) {
+        if (!enemyPrefab) return null;
+        var obj = enemyPool.Get();
+        obj.transform.SetPositionAndRotation(position, rotation);
+        return obj;
     }
+    #endregion
+
+    #region Release Logic
+    public void ReleaseProjectile(PooledProjectile obj) => projectilePool?.Release(obj);
+    public void ReleaseEnemy(Enemy obj) => enemyPool?.Release(obj);
+    #endregion
 }
