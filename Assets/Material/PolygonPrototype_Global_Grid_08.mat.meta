@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: c91237e93545bc440a33db7eca0167f9
+timeCreated: 1547092688
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 137126
+  packageName: POLYGON Prototype - Low Poly 3D Art by Synty
+  packageVersion: 1.8.2
+  assetPath: Assets/3D/PolygonPrototype/Materials/PolygonPrototype_Global_Grid_08.mat
+  uploadId: 735869
