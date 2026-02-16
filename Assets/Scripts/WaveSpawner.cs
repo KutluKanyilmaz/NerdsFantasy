@@ -150,10 +150,15 @@ public class WaveSpawner : MonoBehaviour
 
     void SpawnBatch(WaveImpulse impulse)
     {
+        // Safety check
+        if(impulse.enemyPrefab == null) return;
+
         for (int i = 0; i < impulse.amount; i++)
         {
             Vector3 pos = GetSpawnPosition(impulse);
-            PoolManager.Instance.SpawnEnemy(pos, Quaternion.identity);
+            
+            // UPDATED: Pass the specific prefab from the impulse config
+            PoolManager.Instance.SpawnEnemy(impulse.enemyPrefab, pos, Quaternion.identity);
         }
     }
 
