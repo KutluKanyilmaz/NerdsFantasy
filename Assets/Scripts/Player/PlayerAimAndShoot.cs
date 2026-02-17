@@ -24,8 +24,19 @@ namespace Player {
         void HandleAiming()
         {
             Vector3 targetPosition = MouseWorld.Instance.GetPosition();
+    
+            // Determine the look rotation
+            Vector3 direction = targetPosition - transform.position;
+    
+            // OPTIONAL: Lock aiming to the horizon (prevent character tipping over)
 
-            transform.LookAt(targetPosition);
+            if (direction != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+        
+                // Smooth the rotation so the camera doesn't snap instantly (disorienting)
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 15f);
+            }
         }
 
         void HandleShooting()
