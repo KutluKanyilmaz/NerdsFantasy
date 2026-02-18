@@ -42,7 +42,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - OverlayAmount: 0.5
+    - OverlayAmount: 1
     - _Falloff: 50
     - _GridScale: 1
     - _OverlayAmount: 0.5
@@ -50,7 +50,7 @@ Material:
     - _QueueOffset: 0
     - __dirty: 0
     m_Colors:
-    - _BaseColor: {r: 0.2232556, g: 0.2584861, b: 0.2735849, a: 0}
+    - _BaseColor: {r: 0.082189865, g: 0.082102194, b: 0.084905684, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &1594136667561275789
