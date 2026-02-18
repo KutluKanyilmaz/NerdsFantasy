@@ -336,12 +336,12 @@ Camera:
   m_ShutterSpeed: 0.005
   m_Aperture: 16
   m_FocusDistance: 10
-  m_FocalLength: 20.78461
+  m_FocalLength: 109.645836
   m_BladeCount: 5
   m_Curvature: {x: 2, y: 11}
   m_BarrelClipping: 0.25
   m_Anamorphism: 0
-  m_SensorSize: {x: 36, y: 24}
+  m_SensorSize: {x: 70.41, y: 52.63}
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
@@ -351,7 +351,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60.000004
+  field of view: 26.991467
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -377,8 +377,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2462558, y: 0, z: 0, w: 0.9692049}
-  m_LocalPosition: {x: 1.17, y: 3.23, z: -3.04}
+  m_LocalRotation: {x: 0.35355338, y: 0.35355338, z: -0.1464466, w: 0.8535535}
+  m_LocalPosition: {x: -30.664, y: 40.651, z: -30.664}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -904,7 +904,7 @@ MonoBehaviour:
   angUnitInput: 1
   angRadiansStart: 0
   angRadiansEnd: 2.3561945
-  radius: 20
+  radius: 15
   radiusSpace: 0
   thickness: 0.2
   thicknessSpace: 0
@@ -979,32 +979,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaveSpawner
   centerPoint: {fileID: 771897560}
-  spawnRadius: 25.4
+  spawnRadius: 15
   waves:
-  - waveDuration: 100
+  - waveDuration: 999
     impulses:
     - enemyPrefab: {fileID: 7928119667261991613, guid: aa1011869aa557141822f48b453020e2, type: 3}
       amount: 1
       startTime: 0
-      duration: 60
-      spawnInterval: 5
-      strategy: 1
+      duration: 999
+      spawnInterval: 3
+      strategy: 0
       angleStart: 45.2
       angleEnd: 156.1
     - enemyPrefab: {fileID: 7928119667261991613, guid: 32e11c3c8a28a084daf7794fb7cea5a5, type: 3}
       amount: 1
-      startTime: 10
-      duration: 60
+      startTime: 15
+      duration: 666
       spawnInterval: 10
-      strategy: 1
+      strategy: 0
       angleStart: 45.2
       angleEnd: 156.1
     - enemyPrefab: {fileID: 7928119667261991613, guid: 6bf11e268e92f7d4a8dbebb1b65431a7, type: 3}
       amount: 1
-      startTime: 20
-      duration: 1
-      spawnInterval: 1
-      strategy: 1
+      startTime: 30
+      duration: 333
+      spawnInterval: 30
+      strategy: 0
       angleStart: 45.2
       angleEnd: 156.1
 --- !u!1 &832575517
@@ -1086,9 +1086,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerAimAndShoot
   firePoint: {fileID: 341796396}
-  projectilePrefab: {fileID: 3369766539138806465, guid: 87e8889a1d6e679448745c9fda660d8d, type: 3}
-  projectileSpeed: 50
-  fireRate: 0.2
+  projectilePrefab: {fileID: 3369766539138806465, guid: 8600647cfc89ad349b52cefcbc8e8da9, type: 3}
+  projectileSpeed: 25
+  fireRate: 0.1
 --- !u!4 &1240438404
 Transform:
   m_ObjectHideFlags: 0
@@ -1260,7 +1260,7 @@ MonoBehaviour:
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
-    FieldOfView: 60.000004
+    FieldOfView: 26.991467
     OrthographicSize: 5
     NearClipPlane: 0.3
     FarClipPlane: 1000
@@ -1268,7 +1268,7 @@ MonoBehaviour:
     ModeOverride: 0
     PhysicalProperties:
       GateFit: 2
-      SensorSize: {x: 36, y: 24}
+      SensorSize: {x: 70.41, y: 52.63}
       LensShift: {x: 0, y: 0}
       FocusDistance: 10
       Iso: 200
@@ -1287,14 +1287,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1641755448}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2462558, y: -0, z: -0, w: 0.9692049}
-  m_LocalPosition: {x: 1.17, y: 3.23, z: -3.04}
+  m_LocalRotation: {x: 0.35355338, y: 0.35355338, z: -0.1464466, w: 0.8535535}
+  m_LocalPosition: {x: -30.664, y: 40.651, z: -30.664}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 483316303}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 28.512, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 45, y: 45, z: 0}
 --- !u!1 &1767187391
 GameObject:
   m_ObjectHideFlags: 0
@@ -1400,7 +1400,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: ShapesRuntime::Shapes.Line
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.35857958, g: 0.9622642, b: 0.4181234, a: 1}
+  color: {r: 1, g: 1, b: 1, a: 0.19607843}
   detailLevel: 2
   culling: 0
   boundsPadding: 0
@@ -1418,8 +1418,8 @@ MonoBehaviour:
   colorMode: 0
   colorEnd: {r: 1, g: 1, b: 1, a: 1}
   start: {x: 0, y: 0, z: 0}
-  end: {x: 0, y: 0, z: 20}
-  thickness: 0.015
+  end: {x: 0, y: 0, z: 99}
+  thickness: 0.005
   thicknessSpace: 0
   endCaps: 2
   matchDashSpacingToSize: 1
