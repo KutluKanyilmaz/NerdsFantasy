@@ -1361,6 +1361,7 @@ Transform:
   m_Children:
   - {fileID: 1544839056}
   - {fileID: 713112616}
+  - {fileID: 2012018140}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1234080844
@@ -1458,7 +1459,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1403745624}
   m_Layer: 0
-  m_Name: CameraLightPostProcessing
+  m_Name: CameraLightsPostProcessing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2220,12 +2221,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2012018136}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 1.0625, z: 0}
   m_LocalScale: {x: 34.03397, y: 34.03397, z: 34.03397}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1164359948}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2135923973
 GameObject:
@@ -2416,6 +2417,5 @@ SceneRoots:
   - {fileID: 1234080845}
   - {fileID: 1240438404}
   - {fileID: 2039182395749362267}
-  - {fileID: 2012018140}
   - {fileID: 688190495}
   - {fileID: 1483629377}

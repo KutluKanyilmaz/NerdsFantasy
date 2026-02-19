@@ -1,25 +1,40 @@
-﻿using UnityEngine;
-
-
-namespace Enemies {
+﻿namespace Enemies {
+    using UnityEngine;
 
     public class CompositeTarget : MonoBehaviour
     {
         [Header("Setup")]
-        [Tooltip("Drag the main parent's HealthController here.")]
         public HealthController mainHealth;
-
-        [Header("Damage Settings")]
-        [Tooltip("Multiplier for damage taken here (e.g., 2.0 for head, 0.5 for armor).")]
         public float damageMultiplier = 1.0f;
 
-        // This function is called by the projectile
+        Transform _enemyRoot;
+        Quaternion _initialRotationRelativeToEnemy;
+
+        void Start()
+        {
+            // Find the actual Enemy component above us, not the scene root
+            Enemy enemy = GetComponentInParent<Enemy>();
+            if (enemy != null) {
+                _enemyRoot = enemy.transform;
+                
+                // Calculate the offset: How was I rotated relative to the enemy base in T-Pose?
+                _initialRotationRelativeToEnemy = Quaternion.Inverse(_enemyRoot.rotation) * transform.rotation;
+            }
+        }
+
+        void LateUpdate()
+        {
+            if (_enemyRoot == null) return;
+
+            // Stay locked to the Enemy's rotation, ignoring the bone's animation
+            transform.rotation = _enemyRoot.rotation * _initialRotationRelativeToEnemy;
+        }
+
         public void ReceiveHit(float baseDamage)
         {
             if (mainHealth != null)
             {
-                float finalDamage = baseDamage * damageMultiplier;
-                mainHealth.TakeDamage(finalDamage);
+                mainHealth.TakeDamage(baseDamage * damageMultiplier);
             }
         }
     }
