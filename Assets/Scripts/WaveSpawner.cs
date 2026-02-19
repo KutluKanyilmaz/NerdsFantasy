@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Shapes;
+using Enemies;
 using Sirenix.OdinInspector;
 
 
@@ -15,33 +15,32 @@ public class WaveSpawner : MonoBehaviour
         public string internalDebugName => enemyPrefab != null ? enemyPrefab.name : "Empty Impulse";
 
         [Required, AssetsOnly]
-        [HorizontalGroup("Top", Width = 0.7f)] // Puts Prefab and Amount on one line
-        public GameObject enemyPrefab;
+        [HorizontalGroup("Top", Width = 0.7f)] 
+        public Enemy enemyPrefab;
 
         [HorizontalGroup("Top")]
         [LabelWidth(12)]
-        [LabelText("x")] // Tiny label for the amount
+        [LabelText("x")] 
         [MinValue(1)] 
         public int amount = 1;
         
         [Header("Timing")]
         [MinValue(0)] public float startTime;
         
-        [MinValue(0.1f)] // Prevents 0 or negative duration
+        [MinValue(0.1f)] 
         public float duration = 5f;
         
-        [MinValue(0.01f)] // Prevents the infinite loop/crash scenario
+        [MinValue(0.01f)] 
         public float spawnInterval = 1f;
         
         public SpawnStrategy strategy;
         
         [Header("Strategy Settings")]
-        [ShowIf("@this.strategy != SpawnStrategy.Random")] // Only show if relevant
+        [ShowIf("@this.strategy != SpawnStrategy.Random")] 
         [Range(0f, 360f)] public float angleStart = 0f;
 
-        [ShowIf("strategy", SpawnStrategy.Section)] // Another way to write the toggle
+        [ShowIf("strategy", SpawnStrategy.Section)] 
         [Range(0f, 360f)] public float angleEnd = 90f;
-        
     }
 
     [System.Serializable]
@@ -51,28 +50,25 @@ public class WaveSpawner : MonoBehaviour
         public float waveDuration = 60f;
 
         [ListDrawerSettings(
-            ListElementLabelName = "internalDebugName", // Odin uses this property as the header!
+            ListElementLabelName = "internalDebugName", 
             ShowIndexLabels = false)]
         [ValidateInput("ValidateImpulsesFit", "One or more impulses exceed the wave duration!")]
         public List<WaveImpulse> impulses;
 
-        // Validation logic for the List
         bool ValidateImpulsesFit(List<WaveImpulse> list)
         {
             if (list == null) return true;
             foreach (var impulse in list)
             {
-                if (impulse.startTime > waveDuration)
-                    return false;
-                if (impulse.startTime + impulse.duration > waveDuration)
-                    return false;
+                if (impulse.startTime > waveDuration) return false;
+                if (impulse.startTime + impulse.duration > waveDuration) return false;
             }
             return true;
         }
     }
 
     [Title("Configuration")]
-    [SceneObjectsOnly] // Only allow transforms in the scene
+    [SceneObjectsOnly] 
     public Transform centerPoint;
     
     [PropertyRange(5, 100)]
@@ -81,21 +77,41 @@ public class WaveSpawner : MonoBehaviour
     [Title("Content")]
     public List<Wave> waves;
     
-    // State
-    int currentWaveIndex = -1;
+    // ==========================================
+    // STATE & CONTROLS (NEW)
+    // ==========================================
+    [Title("State & Controls")]
+    [ShowInInspector, ReadOnly]
+    public int CurrentWaveDisplay => currentWaveIndex + 1; // 1-indexed for easier reading
+    
+    [ShowInInspector]
+    [ProgressBar(0, "CurrentWaveDuration", ColorGetter = "GetProgressBarColor")]
+    [LabelText("Wave Progress")]
     float waveTimeTracker;
+    
+    // Public getter so your UI scripts can read the timer
+    public float CurrentWaveTime => waveTimeTracker;
+    
+    // Helper to tell the progress bar what its maximum value should be
+    float CurrentWaveDuration => (currentWaveIndex >= 0 && currentWaveIndex < waves.Count) ? waves[currentWaveIndex].waveDuration : 100f;
+
+    // Changes color of the progress bar when the wave is active
+    Color GetProgressBarColor() => isWaveActive ? new Color(0.2f, 0.8f, 0.2f) : new Color(0.5f, 0.5f, 0.5f);
+
+    int currentWaveIndex = -1;
     bool isWaveActive;
     
-    // Tracks the timing state of each impulse in the current wave
+    // ==========================================
+
     class ImpulseRunner
     {
         public WaveImpulse data;
-        public float nextSpawnTime; // Relative to the impulse's start (0 = start of impulse)
+        public float nextSpawnTime; 
 
         public ImpulseRunner(WaveImpulse _data)
         {
             data = _data;
-            nextSpawnTime = 0f; // Ensure we spawn immediately when impulse starts
+            nextSpawnTime = 0f; 
         }
     }
     
@@ -111,17 +127,14 @@ public class WaveSpawner : MonoBehaviour
     {
         if (!isWaveActive) return;
         
-        // 1. Advance Wave Timer
         waveTimeTracker += Time.deltaTime;
 
-        // 2. Check for Wave End
         if (waveTimeTracker >= waves[currentWaveIndex].waveDuration)
         {
             EndCurrentWave();
             return;
         }
 
-        // 3. Process Concurrent Impulses
         foreach (var runner in activeRunners)
         {
             ProcessImpulse(runner);
@@ -130,19 +143,13 @@ public class WaveSpawner : MonoBehaviour
 
     void ProcessImpulse(ImpulseRunner runner)
     {
-        // Calculate the "local time" for this specific impulse
-        // Example: If Wave is at 25s, and Impulse starts at 20s, local time is 5s.
         float impulseLocalTime = waveTimeTracker - runner.data.startTime;
 
-        // Check if this impulse is currently active (Started AND not finished)
         if (impulseLocalTime >= 0 && impulseLocalTime < runner.data.duration)
         {
-            // Check if it's time to spawn a batch
             if (impulseLocalTime >= runner.nextSpawnTime)
             {
                 SpawnBatch(runner.data);
-                
-                // Schedule next spawn
                 runner.nextSpawnTime += runner.data.spawnInterval;
             }
         }
@@ -150,14 +157,11 @@ public class WaveSpawner : MonoBehaviour
 
     void SpawnBatch(WaveImpulse impulse)
     {
-        // Safety check
         if(impulse.enemyPrefab == null) return;
 
         for (int i = 0; i < impulse.amount; i++)
         {
             Vector3 pos = GetSpawnPosition(impulse);
-            
-            // UPDATED: Pass the specific prefab from the impulse config
             PoolManager.Instance.Spawn(impulse.enemyPrefab, pos, Quaternion.identity);
         }
     }
@@ -171,21 +175,14 @@ public class WaveSpawner : MonoBehaviour
             case SpawnStrategy.Random:
                 angleRad = Random.Range(0f, 360f) * Mathf.Deg2Rad;
                 break;
-
             case SpawnStrategy.Section:
-                // Random angle between Start and End
                 float range = impulse.angleEnd - impulse.angleStart;
-                // Handle wrapping (e.g. 350 to 10 degrees) if needed, 
-                // but simple Range works for standard input.
                 float randomDeg = impulse.angleStart + Random.Range(0f, range); 
                 angleRad = randomDeg * Mathf.Deg2Rad;
                 break;
-
             case SpawnStrategy.Point:
                 angleRad = impulse.angleStart * Mathf.Deg2Rad;
                 break;
-                
-            // Case "OppositePlayer" reserved for later
         }
 
         return new Vector3(
@@ -200,17 +197,12 @@ public class WaveSpawner : MonoBehaviour
         currentWaveIndex++;
         if (currentWaveIndex >= waves.Count)
         {
-            //Debug.Log("All Waves Complete. Looping for debug.");
             currentWaveIndex = 0;
         }
 
-        //Debug.Log($"Starting Wave: {currentWaveIndex}");
-        
-        // Reset timers
         waveTimeTracker = 0f;
         isWaveActive = true;
 
-        // Initialize Runners for the new wave
         activeRunners.Clear();
         foreach (var impulseData in waves[currentWaveIndex].impulses)
         {
@@ -221,7 +213,29 @@ public class WaveSpawner : MonoBehaviour
     void EndCurrentWave()
     {
         isWaveActive = false;
-        // Automatically start next one for now
+        StartNextWave();
+    }
+
+    // ==========================================
+    // EXTERNAL CONTROLS (NEW)
+    // ==========================================
+    
+    /// <summary>
+    /// Resets the spawner entirely, taking it back to the first wave.
+    /// Can be called from other scripts (e.g., when the player dies and restarts)
+    /// </summary>
+    [Button(ButtonSizes.Large), GUIColor(1f, 0.4f, 0.4f)]
+    public void ResetWaves()
+    {
+        if (waves == null || waves.Count == 0) return;
+
+        isWaveActive = false;
+        activeRunners.Clear();
+        
+        // Setting to -1 so that StartNextWave increments it to 0
+        currentWaveIndex = -1;
+        waveTimeTracker = 0f;
+        
         StartNextWave();
     }
 
@@ -229,7 +243,6 @@ public class WaveSpawner : MonoBehaviour
     // EDITOR VALIDATION
     // ==========================================
     void OnValidate() {
-        // This runs whenever you change values in the Inspector
         if (waves == null) return;
 
         for (var index = 0; index < waves.Count; index++) {
@@ -237,12 +250,9 @@ public class WaveSpawner : MonoBehaviour
             if (wave.impulses == null) continue;
 
             foreach (var impulse in wave.impulses) {
-                // Check 1: Does the impulse end after the wave ends?
                 if (impulse.startTime + impulse.duration > wave.waveDuration) {
                     Debug.LogError($"[Config Error] Impulse in Wave '{index}' exceeds wave duration!");
                 }
-
-                // Check 2: Zero interval check to prevent infinite loops/crashes
                 if (impulse.spawnInterval <= 0) impulse.spawnInterval = 0.1f;
             }
         }

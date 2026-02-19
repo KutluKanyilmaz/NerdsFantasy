@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class HealthBar : MonoBehaviour {
@@ -19,8 +18,7 @@ public class HealthBar : MonoBehaviour {
     }
 
     void Update() {
-        if (Mathf.Abs(fillAmountTarget - fillImage.fillAmount) > 0.001f) 
-        {
+        if (Mathf.Abs(fillAmountTarget - fillImage.fillAmount) > 0.001f) {
             fillImage.fillAmount = Mathf.Lerp(fillImage.fillAmount, fillAmountTarget, Time.deltaTime * lerpSpeed);
         }
 

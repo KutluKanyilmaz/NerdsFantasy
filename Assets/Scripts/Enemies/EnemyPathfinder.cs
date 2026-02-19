@@ -11,8 +11,11 @@ namespace Enemies {
         [Header("Settings")]
         public float stopDistance = 1.5f;
 
-        void Start()
-        {
+        void Start() {
+            SetPlayerAsTarget();
+        }
+
+        public void SetPlayerAsTarget() {
             agent = GetComponent<NavMeshAgent>();
 
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");

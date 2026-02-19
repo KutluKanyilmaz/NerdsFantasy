@@ -12,6 +12,12 @@ public class HealthController : MonoBehaviour
     void Start()
     {
         currentHealth = maxHealth;
+        OnHealthChange?.Invoke(currentHealth / maxHealth);
+    }
+
+    public void ResetHealth() {
+        currentHealth = maxHealth;
+        OnHealthChange?.Invoke(currentHealth / maxHealth);
     }
 
     // This is the function the Hitboxes will call
@@ -23,12 +29,7 @@ public class HealthController : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            Die();
+            PoolManager.Instance.Release(this);
         }
-    }
-
-    void Die()
-    {
-        Destroy(gameObject);
     }
 }
