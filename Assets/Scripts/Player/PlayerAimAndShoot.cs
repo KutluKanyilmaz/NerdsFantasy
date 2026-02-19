@@ -7,7 +7,8 @@ namespace Player {
     {
         [Header("Setup")]
         public Transform firePoint; 
-        public GameObject projectilePrefab;
+        
+        public PooledProjectile projectilePrefab;
 
         [Header("Settings")]
         public float projectileSpeed = 20f;
@@ -24,24 +25,19 @@ namespace Player {
         void HandleAiming()
         {
             Vector3 targetPosition = MouseWorld.Instance.GetPosition();
-    
-            // Determine the look rotation
             Vector3 direction = targetPosition - transform.position;
-    
-            // OPTIONAL: Lock aiming to the horizon (prevent character tipping over)
 
             if (direction != Vector3.zero)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
-        
-                // Smooth the rotation so the camera doesn't snap instantly (disorienting)
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 15f);
             }
         }
 
         void HandleShooting()
         {
-            if (Mouse.current.leftButton.wasPressedThisFrame && Time.time >= nextFireTime)
+            // Note: Make sure 'Mouse' is properly imported from the New Input System
+            if (UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame && Time.time >= nextFireTime)
             {
                 Shoot();
                 nextFireTime = Time.time + fireRate;
@@ -52,10 +48,10 @@ namespace Player {
         {
             if (firePoint == null || projectilePrefab == null) return;
 
-            PooledProjectile bullet = PoolManager.Instance.SpawnProjectile(firePoint.position, firePoint.rotation);
+            // UPDATED: Now uses the generic multi-pool system!
+            PooledProjectile bullet = PoolManager.Instance.Spawn(projectilePrefab, firePoint.position, firePoint.rotation);
             
-            Rigidbody rb = bullet.GetComponent<Rigidbody>();
-            if (rb != null)
+            if (bullet.TryGetComponent(out Rigidbody rb))
             {
                 rb.linearVelocity = firePoint.forward * projectileSpeed;
             }

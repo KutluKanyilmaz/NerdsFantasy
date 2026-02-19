@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using DamageNumbersPro;
 using Enemies;
 
 public class PooledProjectile : MonoBehaviour, IPooledObject {
@@ -41,7 +42,7 @@ public class PooledProjectile : MonoBehaviour, IPooledObject {
         {
             if (!hasDamaged) {
                 hasDamaged = true;
-                PoolManager.Instance.DamageNumberPrefab.Spawn(transform.position, damage * partHit.damageMultiplier);
+                PoolManager.Instance.SpawnDefaultDamageNumber(other.transform.position, damage * partHit.damageMultiplier);
                 partHit.ReceiveHit(damage);
             }
             ReturnToPool();
@@ -59,6 +60,6 @@ public class PooledProjectile : MonoBehaviour, IPooledObject {
         
         isReleased = true;
         StopAllCoroutines();
-        PoolManager.Instance.ReleaseProjectile(this);
+        PoolManager.Instance.Release(this);
     }
 }

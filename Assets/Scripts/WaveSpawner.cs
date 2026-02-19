@@ -158,7 +158,7 @@ public class WaveSpawner : MonoBehaviour
             Vector3 pos = GetSpawnPosition(impulse);
             
             // UPDATED: Pass the specific prefab from the impulse config
-            PoolManager.Instance.SpawnEnemy(impulse.enemyPrefab, pos, Quaternion.identity);
+            PoolManager.Instance.Spawn(impulse.enemyPrefab, pos, Quaternion.identity);
         }
     }
 
