@@ -3049,6 +3049,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6373eb8f2dc44319a9f0dd9288f6ecd1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Enemy
+  experienceOrbPrefab: {fileID: 3888592115734782533, guid: bbdbc2aa446259e46b46428b7f73eb5c, type: 3}
 --- !u!114 &7886647553509603180
 MonoBehaviour:
   m_ObjectHideFlags: 0

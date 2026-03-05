@@ -33,13 +33,5 @@ namespace Enemies {
 
             agent.stoppingDistance = stopDistance;
         }
-
-        void Update()
-        {
-            /*if (playerTarget != null)
-            {
-                agent.SetDestination(playerTarget.position);
-            }*/
-        }
     }
 }

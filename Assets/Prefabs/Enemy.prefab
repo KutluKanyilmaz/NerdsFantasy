@@ -591,7 +591,7 @@ MonoBehaviour:
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 4087
 --- !u!1 &6929027854673094999
 GameObject:
   m_ObjectHideFlags: 0
@@ -3138,6 +3138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6373eb8f2dc44319a9f0dd9288f6ecd1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Enemy
+  xpCrystalPrefab: {fileID: 9057318309394450525, guid: bbdbc2aa446259e46b46428b7f73eb5c, type: 3}
 --- !u!114 &7886647553509603180
 MonoBehaviour:
   m_ObjectHideFlags: 0

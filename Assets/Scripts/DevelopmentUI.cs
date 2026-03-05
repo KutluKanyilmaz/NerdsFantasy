@@ -1,31 +1,35 @@
 using System.Collections;
 using Enemies;
-using Player;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 using System;
-using System.Collections;
-using System.Text;
-using TMPro;
-using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.UI;
 
 public class DevelopmentUI : MonoBehaviour {
+    [Header("Text")]
     [SerializeField] TextMeshProUGUI timerTextUGUI;
     [SerializeField] TextMeshProUGUI waveCounterTextUGUI;
     [SerializeField] TextMeshProUGUI playerAimShootVTextUGUI;
-    [SerializeField] WaveSpawner waveSpawner;
-    [SerializeField] PlayerAimAndShoot playerAimAndShoot;
 
-    public int projectileDamageStep = 10;
+    [Header("Experience Bar")]
+    [SerializeField] Image fillImage;
+    [SerializeField] float fillSpeed = 20f;
+    
+    [Header("Systems")]
+    [SerializeField] WaveSpawner waveSpawner;
+    [SerializeField] LevelManager levelManager;
+    
+    //[SerializeField] PlayerAimAndShoot playerAimAndShoot;
+
+    /*public int projectileDamageStep = 10;
     public float fireRateStep = 0.1f;
     public float gunnerRotationRangeStep = 5f;
     public float gunnerRotationSpeedStep = 5f;
     public float keyboardChairRotationSpeedStep = 10f;
-    public float mouseChairRotationSpeedStep = 5f;
+    public float mouseChairRotationSpeedStep = 5f;*/
     
     bool num1Pressed;
     bool num2Pressed;
@@ -34,21 +38,32 @@ public class DevelopmentUI : MonoBehaviour {
     bool num5Pressed;
     bool num6Pressed;
     bool num7Pressed;
+    
+    float fillAmountTarget;
+
+
+    void Start() {
+        levelManager.OnXPUpdated += (currentExp, expToNextLevel) => fillAmountTarget = (float)currentExp / expToNextLevel;
+    }
 
     void Update() {
         // 1. Handle Inputs First (so the UI reflects the current frame's state)
-        HandleNumpadKeysPressed();
+        //HandleNumpadKeysPressed();
 
-        if (Keyboard.current.rKey.wasPressedThisFrame) {
+        if (Keyboard.current.spaceKey.wasPressedThisFrame) {
             StartCoroutine(ClearAndResetRoutine());
         }
 
         // 2. Update Basic Text
-        timerTextUGUI.text = $"Timer: {waveSpawner.CurrentWaveTime:F2}";
-        waveCounterTextUGUI.text = $"Wave: {waveSpawner.CurrentWaveDisplay}";
+        //timerTextUGUI.text = $"Timer: {waveSpawner.CurrentWaveTime:F2}";
+        waveCounterTextUGUI.text = $"Score: {waveSpawner.CurrentWaveDisplay}";
+        
+        if (Mathf.Abs(fillAmountTarget - fillImage.fillAmount) > 0.001f) {
+            fillImage.fillAmount = Mathf.Lerp(fillImage.fillAmount, fillAmountTarget, Time.deltaTime * fillSpeed);
+        }
 
         // 3. Build the Dev Menu Text
-        StringBuilder sb = new StringBuilder("<b>Player Values:</b>");
+        /*StringBuilder sb = new StringBuilder("<b>Player Values:</b>");
 
         sb.Append(FormatLine(1, "Damage", playerAimAndShoot.projectileDamage, num1Pressed));
         sb.Append(FormatLine(2, "FireRate", playerAimAndShoot.fireRate, num2Pressed));
@@ -58,10 +73,10 @@ public class DevelopmentUI : MonoBehaviour {
         sb.Append(FormatLine(6, "MouseMinRotationSpeed", playerAimAndShoot.mouseChairMinRotationSpeed, num6Pressed));
         sb.Append(FormatLine(7, "MouseMaxRotationSpeed", playerAimAndShoot.mouseChairMaxRotationSpeed, num7Pressed));
 
-        playerAimShootVTextUGUI.text = sb.ToString();
+        playerAimShootVTextUGUI.text = sb.ToString();*/
     }
 
-    void HandleNumpadKeysPressed() {
+    /*void HandleNumpadKeysPressed() {
         var kb = Keyboard.current;
 
         UpdateIntStat(kb.numpad1Key, 
@@ -98,7 +113,7 @@ public class DevelopmentUI : MonoBehaviour {
             () => playerAimAndShoot.mouseChairMaxRotationSpeed, 
             v => playerAimAndShoot.mouseChairMaxRotationSpeed = v, 
             mouseChairRotationSpeedStep, out num7Pressed);
-    }
+    }*/
 
     // --- Helper Methods ---
 

@@ -17,9 +17,9 @@ TagManager:
   - Projectile
   - Player
   - MinimumMouseHeightPlane
-  - 
-  - 
-  - 
+  - RenderTexture
+  - ExperienceOrb
+  - Harvester
   - 
   - 
   - 

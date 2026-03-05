@@ -120,7 +120,7 @@ public class WaveSpawner : MonoBehaviour
     void Start()
     {
         if (centerPoint == null) centerPoint = transform;
-        StartNextWave();
+        //StartNextWave(); Giving control to LevelManager
     }
 
     void Update()

@@ -8,6 +8,7 @@ public class HealthController : MonoBehaviour
     float currentHealth;
     
     public Action<float> OnHealthChange;
+    public Action OnDeath; // Added this!
 
     void Start()
     {
@@ -15,7 +16,8 @@ public class HealthController : MonoBehaviour
         OnHealthChange?.Invoke(currentHealth / maxHealth);
     }
 
-    public void ResetHealth() {
+    public void ResetHealth() 
+    {
         currentHealth = maxHealth;
         OnHealthChange?.Invoke(currentHealth / maxHealth);
     }
@@ -23,12 +25,15 @@ public class HealthController : MonoBehaviour
     // This is the function the Hitboxes will call
     public void TakeDamage(float amount)
     {
+        // Prevent multiple deaths if hit by multiple projectiles in the same frame
+        if (currentHealth <= 0) return; 
+
         currentHealth -= amount;
-        //Debug.Log($"{gameObject.name} took {amount} damage. HP: {currentHealth}");
-        OnHealthChange.Invoke(currentHealth / maxHealth);
+        OnHealthChange?.Invoke(currentHealth / maxHealth);
 
         if (currentHealth <= 0)
         {
+            OnDeath?.Invoke(); // Tell the Enemy script to drop the loot!
             PoolManager.Instance.Release(this);
         }
     }

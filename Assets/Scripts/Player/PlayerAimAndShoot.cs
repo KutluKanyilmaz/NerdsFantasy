@@ -5,11 +5,6 @@ using Sirenix.OdinInspector;
 
 namespace Player 
 {
-    public enum RotationType {
-        Keyboard,
-        Mouse
-    }
-    
     public class PlayerAimAndShoot : MonoBehaviour {
         [Header("References")]
         public Transform humanTransform; 
